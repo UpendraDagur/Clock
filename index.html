@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stopwatch</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+  body {
+    background-color: #111;
+    color: #fff;
+    font-family: "Inter", sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* for absolute positioning of name */
+  }
+
+  .time {
+    font-family: "Roboto Mono", monospace;
+    font-size: 5rem;
+    font-weight: 500;
+    letter-spacing: 2px;
+    margin-bottom: 2rem;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    width: 280px;
+    margin-bottom: 2rem;
+  }
+
+  .start-stop {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: none;
+    color: #fff;
+    background-color: #1e8f4a;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .start-stop.stop { background-color: #c0392b; }
+  .start-stop:hover { transform: scale(1.05); }
+
+  .reset {
+    background: none;
+    border: none;
+    color: #bbb;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .reset:hover { color: #fff; }
+
+  .stats {
+    color: #aaa;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  .stats span { color: #fff; }
+
+  /* Name at bottom right corner */
+  .creator-name {
+    position: absolute;
+    bottom: 10px; /* distance from bottom */
+    right: 10px;  /* distance from right edge */
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  @media (max-width: 600px) {
+    .time { font-size: 3.5rem; }
+    .controls { width: 220px; }
+    .creator-name { font-size: 0.9rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="time" id="display">00:00.00</div>
+
+<div class="controls">
+  <button id="startStopBtn" class="start-stop">Start</button>
+  <button id="resetBtn" class="reset">Reset</button>
+</div>
+
+<div class="stats">
+  <p>Total Running Time: <span id="runTime">00:00.00</span></p>
+  <p>Total Stopped Time: <span id="stopTime">00:00.00</span></p>
+</div>
+
+<div class="creator-name">Upendra Dagur</div>
+
+<script>
+let startTime = 0, elapsedTime = 0, timerInterval;
+let isRunning = false, totalRunTime = 0, totalStopTime = 0, lastToggleTime = Date.now();
+
+const display = document.getElementById("display");
+const startStopBtn = document.getElementById("startStopBtn");
+const runTimeDisplay = document.getElementById("runTime");
+const stopTimeDisplay = document.getElementById("stopTime");
+
+function formatTime(ms) {
+  const totalHundredths = Math.floor(ms / 10);
+  const minutes = Math.floor(totalHundredths / 6000);
+  const seconds = Math.floor((totalHundredths % 6000) / 100);
+  const hundredths = totalHundredths % 100;
+  return `${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}.${String(hundredths).padStart(2,"0")}`;
+}
+
+function updateDisplay() {
+  const now = Date.now();
+  elapsedTime = now - startTime + totalRunTime;
+  display.textContent = formatTime(elapsedTime);
+  runTimeDisplay.textContent = formatTime(totalRunTime + (isRunning ? (now - startTime) : 0));
+}
+
+function startStop() {
+  const now = Date.now();
+  if (!isRunning) {
+    startTime = now;
+    isRunning = true;
+    startStopBtn.textContent = "Stop";
+    startStopBtn.classList.add("stop");
+    timerInterval = setInterval(updateDisplay, 10);
+    totalStopTime += now - lastToggleTime;
+  } else {
+    clearInterval(timerInterval);
+    isRunning = false;
+    totalRunTime += now - startTime;
+    startStopBtn.textContent = "Start";
+    startStopBtn.classList.remove("stop");
+    lastToggleTime = now;
+  }
+  updateStats();
+}
+
+function reset() {
+  clearInterval(timerInterval);
+  elapsedTime = totalRunTime = totalStopTime = 0;
+  isRunning = false;
+  display.textContent = "00:00.00";
+  runTimeDisplay.textContent = "00:00.00";
+  stopTimeDisplay.textContent = "00:00.00";
+  startStopBtn.textContent = "Start";
+  startStopBtn.classList.remove("stop");
+  lastToggleTime = Date.now();
+}
+
+function updateStats() {
+  runTimeDisplay.textContent = formatTime(totalRunTime);
+  stopTimeDisplay.textContent = formatTime(totalStopTime);
+}
+
+startStopBtn.addEventListener("click", startStop);
+document.getElementById("resetBtn").addEventListener("click", reset);
+</script>
+
+</body>
+</html>
+
